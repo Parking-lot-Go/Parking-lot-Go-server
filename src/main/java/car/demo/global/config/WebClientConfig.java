@@ -22,4 +22,16 @@ public class WebClientConfig {
         .build();
   }
 
+  @Bean
+  @Qualifier("GyeonggiDo")
+  public WebClient webClientGyy(){
+    return WebClient.builder()
+        .baseUrl("https://openapi.gg.go.kr")
+        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+        .codecs(configurer -> configurer
+            .defaultCodecs()
+            .maxInMemorySize(2 * 1024 * 1024)) // 2MB
+        .build();
+  }
+
 }

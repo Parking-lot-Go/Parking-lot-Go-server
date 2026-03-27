@@ -48,7 +48,7 @@ public class SeoulParkingResponse {
     @Setter
     @NoArgsConstructor
     @ToString
-    public static class ParkingRow {
+    public static class ParkingRow implements ParkingLotData {
         @JsonProperty("PKLT_CD")
         private String parkingCode;
 

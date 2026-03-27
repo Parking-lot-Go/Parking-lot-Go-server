@@ -1,5 +1,6 @@
 package car.demo.domain.SeoulAPI.entity;
 
+import car.demo.domain.SeoulAPI.dto.ParkingLotData;
 import car.demo.domain.SeoulAPI.dto.SeoulParkingResponse;
 import car.demo.global.utils.BaseTimeEntity;
 import jakarta.persistence.CascadeType;
@@ -81,7 +82,7 @@ public class ParkingLot extends BaseTimeEntity {
     parkingStatus.setParkingLot(this);
   }
 
-  public static ParkingLot from(SeoulParkingResponse.ParkingRow row, String district) {
+  public static ParkingLot from(ParkingLotData row, String district) {
     int totalCapacity = safeInt(row.getTotalParkingCapacity());
     int currentCount = Math.max(0, safeInt(row.getCurrentParkingCount()));
     int availableCount = Math.max(0, totalCapacity - currentCount);
@@ -125,7 +126,7 @@ public class ParkingLot extends BaseTimeEntity {
     return lot;
   }
 
-  public void update(SeoulParkingResponse.ParkingRow row) {
+  public void update(ParkingLotData row) {
     this.parkingName = row.getParkingName();
     this.address = row.getAddress();
     this.parkingType = row.getParkingType();

@@ -1,6 +1,6 @@
 package car.demo.domain.SeoulAPI.event;
 
-import car.demo.domain.SeoulAPI.dto.SeoulParkingResponse;
+import car.demo.domain.SeoulAPI.dto.ParkingLotData;
 import car.demo.domain.SeoulAPI.entity.ParkingLot;
 import car.demo.domain.SeoulAPI.repository.ParkingLotRepository;
 import car.demo.domain.SeoulAPI.repository.ParkingStatusRepository;
@@ -30,7 +30,7 @@ public class ParkingEventListener {
     });
   }
 
-  private void upsertParkingLot(SeoulParkingResponse.ParkingRow row, String district) {
+  private void upsertParkingLot(ParkingLotData row, String district) {
     parkingLotRepository.findByParkingCode(row.getParkingCode())
         .ifPresentOrElse(
             lot -> lot.update(row),   // 이미 있으면 업데이트 (상태 포함)

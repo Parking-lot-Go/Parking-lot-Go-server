@@ -2,11 +2,14 @@ package car.demo.domain.SeoulAPI.controller;
 
 import car.demo.domain.SeoulAPI.dto.CursorResponseDto;
 import car.demo.domain.SeoulAPI.dto.ParkingLotResponseDto;
+import car.demo.domain.SeoulAPI.dto.ParkingReqData;
 import car.demo.domain.SeoulAPI.entity.ParkingStatusType;
 import car.demo.domain.SeoulAPI.service.ParkingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +30,12 @@ public class ParkingController {
       @RequestParam(name = "district", required = false) String district,
       @RequestParam(name = "type" ,required = false, defaultValue = "REALTIME") ParkingStatusType type) {
     return ResponseEntity.ok(parkingService.getParkingLots(cursor, size, name, address, district,type));
+  }
+
+  @PostMapping
+  public ResponseEntity<Void> fetchParkingData(@RequestBody ParkingReqData body) {
+    parkingService.fetchParkingData();
+    return ResponseEntity.ok().build();
   }
 
 }

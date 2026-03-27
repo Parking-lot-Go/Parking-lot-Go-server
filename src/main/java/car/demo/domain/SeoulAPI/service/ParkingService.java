@@ -2,6 +2,7 @@ package car.demo.domain.SeoulAPI.service;
 
 import car.demo.domain.SeoulAPI.dto.CursorResponseDto;
 import car.demo.domain.SeoulAPI.dto.ParkingLotResponseDto;
+import car.demo.domain.SeoulAPI.dto.ParkingReqData;
 import car.demo.domain.SeoulAPI.dto.SeoulParkingResponse;
 import car.demo.domain.SeoulAPI.event.ParkingDataCollectedEvent;
 import car.demo.domain.SeoulAPI.repository.ParkingLotRepository;
@@ -18,23 +19,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ParkingService {
 
-  @Qualifier("seoulApiClient")
-  private final WebClient seoulApiClient;
-
-  private final ApplicationEventPublisher eventPublisher;
   private final ParkingLotRepository parkingLotRepository;
-
-  @Value("${seoul.api-key}")
-  private String API_KEY;
+  private final java.util.List<ParkingDataCollector> collectors;
 
 
   @Transactional(readOnly = true)
@@ -63,31 +55,20 @@ public class ParkingService {
   @Scheduled(cron = "0 * * * * *")
   @SchedulerLock(name = "ParkingService_fetchParkingData", lockAtMostFor = "55s", lockAtLeastFor = "50s")
   public void fetchParkingData() {
-//    log.info("[Scheduler] 주차 데이터 수집 시작");
-
-    Flux.fromArray(SeoulDistrict.values())
-        .flatMap(district -> seoulApiClient.get()
-            .uri("/{apiKey}/json/GetParkingInfo/1/1000/{district}", API_KEY, district.getKoreanName())
-            .retrieve()
-            .bodyToMono(SeoulParkingResponse.class)
-            .doOnSuccess(response -> {
-              if (response != null && response.getGetParkingInfo() != null) {
-
-                // 이벤트 발행
-                eventPublisher.publishEvent(new ParkingDataCollectedEvent(
-                    district.getKoreanName(),
-                    response.getGetParkingInfo().getRow()
-                ));
-              }
-            })
-            .onErrorResume(error -> {
-              log.error("[Scheduler] {} 수신 실패: {}", district.getKoreanName(), error.getMessage());
-              return Mono.empty();
-            }), 5)
-        .collectList()
-        .block();
-
-//    log.info("[Scheduler] 전체 주차 데이터 수집 완료");
+    // 자동 수집 대상으로 등록된 수집기만 실행
+    collectors.stream()
+        .filter(ParkingDataCollector::isAutoCollectible)
+        .forEach(collector -> {
+          try {
+            collector.collect();
+          } catch (Exception e) {
+            log.error("[Scheduler] 수집기 실행 실패: {}", collector.getClass().getSimpleName(), e);
+          }
+        });
   }
 
+  public void customFetchParkingData(ParkingReqData body) {
+    // 간단히 전체 수집을 실행. (필터링 수집은 Collector 확장으로 추후 지원 가능)
+    fetchParkingData();
+  }
 }
