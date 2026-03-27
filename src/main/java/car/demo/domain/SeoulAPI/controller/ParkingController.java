@@ -28,8 +28,15 @@ public class ParkingController {
       @RequestParam(name = "name", required = false) String name,
       @RequestParam(name = "address", required = false) String address,
       @RequestParam(name = "district", required = false) String district,
+      @RequestParam(name = "swLat", required = false) Double swLat,
+      @RequestParam(name = "swLng", required = false) Double swLng,
+      @RequestParam(name = "neLat", required = false) Double neLat,
+      @RequestParam(name = "neLng", required = false) Double neLng,
+      @RequestParam(name = "lat", required = false) Double lat,
+      @RequestParam(name = "lng", required = false) Double lng,
+      @RequestParam(name = "radius", required = false) Double radius,
       @RequestParam(name = "type" ,required = false, defaultValue = "REALTIME") ParkingStatusType type) {
-    return ResponseEntity.ok(parkingService.getParkingLots(cursor, size, name, address, district,type));
+    return ResponseEntity.ok(parkingService.getParkingLots(cursor, size, name, address, district, swLat, swLng, neLat, neLng, lat, lng, radius, type));
   }
 
   @PostMapping

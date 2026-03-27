@@ -65,8 +65,8 @@ public class ParkingLot extends BaseTimeEntity {
   private Integer monthlyFee;       // PRD_AMT
   private Integer dayMaxFee;        // DAY_MAX_CRG
 
-  private String lat; // y좌표 (Latitude)
-  private String lng; // x좌표 (Longitude)
+  private Double lat; // y좌표 (Latitude)
+  private Double lng; // x좌표 (Longitude)
 
   // 실시간 연계 여부 (핵심!)
   @Enumerated(EnumType.STRING)
@@ -83,7 +83,18 @@ public class ParkingLot extends BaseTimeEntity {
   }
 
   public static ParkingLot from(ParkingLotData row, String district, Province province) {
+    return from(row, district, province, true);
+  }
+
+  public static ParkingLot fromStatic(ParkingLotData row, String district, Province province) {
+    return from(row, district, province, false);
+  }
+
+  private static ParkingLot from(ParkingLotData row, String district, Province province, boolean includeStatus) {
     int totalCapacity = safeInt(row.getTotalParkingCapacity());
+
+    double newLat = safeDouble(row.getLat());
+    double newLng = safeDouble(row.getLot());
 
     ParkingLot lot = ParkingLot.builder()
         .parkingCode(row.getParkingCode())
@@ -108,13 +119,13 @@ public class ParkingLot extends BaseTimeEntity {
         .additionalTime(safeInt(row.getAddParkingTime()))
         .monthlyFee(parseAmount(row.getPeriodicTicketAmount()))
         .dayMaxFee(safeInt(row.getDayMaxCharge()))
-        .lat(row.getLat())
-        .lng(row.getLot())
+        .lat(newLat > 0 ? newLat : null)
+        .lng(newLng > 0 ? newLng : null)
         .statusType(ParkingStatusType.from(row.getParkingStatusYn()))
         .build();
 
-    // 서울시 데이터인 경우에만 실시간 상태 초기 생성
-    if (province == Province.SEOUL) {
+    // 서울시 데이터이고 실시간 상태 포함 요청인 경우에만 실시간 상태 초기 생성
+    if (includeStatus && province == Province.SEOUL) {
       int currentCount = Math.max(0, safeInt(row.getCurrentParkingCount()));
       int availableCount = Math.max(0, totalCapacity - currentCount);
 
@@ -130,6 +141,30 @@ public class ParkingLot extends BaseTimeEntity {
   }
 
   public void update(ParkingLotData row, Province province) {
+    updateBase(row);
+    // 서울시 데이터인 경우에만 실시간 상태 업데이트
+    if (province == Province.SEOUL && this.parkingStatus != null) {
+      this.parkingStatus.update(
+          this.totalCapacity,
+          safeInt(row.getCurrentParkingCount()),
+          parseDateTime(row.getCurrentParkingUpdateTime())
+      );
+    }
+  }
+
+  public void updateStatic(ParkingLotData row) {
+    updateBase(row);
+    double newLat = safeDouble(row.getLat());
+    double newLng = safeDouble(row.getLot());
+    if (newLat > 0) {
+      this.lat = newLat;
+    }
+    if (newLng > 0) {
+      this.lng = newLng;
+    }
+  }
+
+  private void updateBase(ParkingLotData row) {
     this.parkingName = row.getParkingName();
     this.address = row.getAddress();
     this.parkingType = row.getParkingType();
@@ -151,15 +186,6 @@ public class ParkingLot extends BaseTimeEntity {
     this.monthlyFee = parseAmount(row.getPeriodicTicketAmount());
     this.dayMaxFee = safeInt(row.getDayMaxCharge());
     this.statusType = ParkingStatusType.from(row.getParkingStatusYn());
-
-    // 서울시 데이터인 경우에만 실시간 상태 업데이트
-    if (province == Province.SEOUL && this.parkingStatus != null) {
-      this.parkingStatus.update(
-          this.totalCapacity,
-          safeInt(row.getCurrentParkingCount()),
-          parseDateTime(row.getCurrentParkingUpdateTime())
-      );
-    }
   }
 
   private static LocalDateTime parseDateTime(String dateTimeStr) {
@@ -171,6 +197,17 @@ public class ParkingLot extends BaseTimeEntity {
       return LocalDateTime.parse(dateTimeStr.replace(" ", "T"));
     } catch (Exception e) {
       return LocalDateTime.now();
+    }
+  }
+
+  private static double safeDouble(String value) {
+    if (value == null || value.isEmpty() || "null".equals(value)) {
+      return 0.0;
+    }
+    try {
+      return Double.parseDouble(value);
+    } catch (NumberFormatException e) {
+      return 0.0;
     }
   }
 

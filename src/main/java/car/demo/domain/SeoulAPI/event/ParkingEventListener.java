@@ -24,10 +24,17 @@ public class ParkingEventListener {
   @Async // 비동기 처리 (수집 스레드 블로킹 방지)
   @Transactional
   public void handleParkingDataCollected(ParkingDataCollectedEvent event) {
-//    log.info("[Event] {} 저장 시작 - {} 건", event.district(), event.rows().size());
-
     event.rows().forEach(row -> {
       upsertParkingLot(row, event.district(), event.province()); // 지역(Province) 정보 추가 전달
+    });
+  }
+
+  @EventListener
+  @Async
+  @Transactional
+  public void handleParkingStaticDataCollected(ParkingStaticDataCollectedEvent event) {
+    event.rows().forEach(row -> {
+      upsertStaticParkingLot(row, event.district(), event.province());
     });
   }
 
@@ -36,6 +43,14 @@ public class ParkingEventListener {
         .ifPresentOrElse(
             lot -> lot.update(row, province),   // 이미 있으면 업데이트 (서울인 경우만 상태 포함)
             () -> parkingLotRepository.save(ParkingLot.from(row, district, province)) // 없으면 저장 (서울인 경우만 상태 포함)
+        );
+  }
+
+  private void upsertStaticParkingLot(ParkingLotData row, String district, Province province) {
+    parkingLotRepository.findByParkingCode(row.getParkingCode())
+        .ifPresentOrElse(
+            lot -> lot.updateStatic(row),   // 정적 데이터만 업데이트
+            () -> parkingLotRepository.save(ParkingLot.fromStatic(row, district, province)) // 정적 데이터로 저장
         );
   }
 }

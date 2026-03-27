@@ -35,8 +35,8 @@ public class ParkingLotResponseDto {
   private Integer additionalTime;
   private Integer monthlyFee;
   private Integer dayMaxFee;
-  private String lat;
-  private String lng;
+  private Double lat;
+  private Double lng;
   private String weekdayStart;
   private String weekdayEnd;
   private String weekendStart;
