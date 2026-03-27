@@ -4,6 +4,7 @@ import car.demo.domain.SeoulAPI.dto.ParkingLotData;
 import car.demo.domain.SeoulAPI.entity.ParkingLot;
 import car.demo.domain.SeoulAPI.repository.ParkingLotRepository;
 import car.demo.domain.SeoulAPI.repository.ParkingStatusRepository;
+import car.demo.global.constants.Province;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -26,15 +27,15 @@ public class ParkingEventListener {
 //    log.info("[Event] {} 저장 시작 - {} 건", event.district(), event.rows().size());
 
     event.rows().forEach(row -> {
-      upsertParkingLot(row, event.district()); // 기본 정보 및 상태 통합 upsert
+      upsertParkingLot(row, event.district(), event.province()); // 지역(Province) 정보 추가 전달
     });
   }
 
-  private void upsertParkingLot(ParkingLotData row, String district) {
+  private void upsertParkingLot(ParkingLotData row, String district, Province province) {
     parkingLotRepository.findByParkingCode(row.getParkingCode())
         .ifPresentOrElse(
-            lot -> lot.update(row),   // 이미 있으면 업데이트 (상태 포함)
-            () -> parkingLotRepository.save(ParkingLot.from(row, district)) // 없으면 저장 (상태 포함)
+            lot -> lot.update(row, province),   // 이미 있으면 업데이트 (서울인 경우만 상태 포함)
+            () -> parkingLotRepository.save(ParkingLot.from(row, district, province)) // 없으면 저장 (서울인 경우만 상태 포함)
         );
   }
 }

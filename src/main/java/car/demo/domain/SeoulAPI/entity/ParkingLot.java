@@ -1,7 +1,7 @@
 package car.demo.domain.SeoulAPI.entity;
 
 import car.demo.domain.SeoulAPI.dto.ParkingLotData;
-import car.demo.domain.SeoulAPI.dto.SeoulParkingResponse;
+import car.demo.global.constants.Province;
 import car.demo.global.utils.BaseTimeEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -82,10 +82,8 @@ public class ParkingLot extends BaseTimeEntity {
     parkingStatus.setParkingLot(this);
   }
 
-  public static ParkingLot from(ParkingLotData row, String district) {
+  public static ParkingLot from(ParkingLotData row, String district, Province province) {
     int totalCapacity = safeInt(row.getTotalParkingCapacity());
-    int currentCount = Math.max(0, safeInt(row.getCurrentParkingCount()));
-    int availableCount = Math.max(0, totalCapacity - currentCount);
 
     ParkingLot lot = ParkingLot.builder()
         .parkingCode(row.getParkingCode())
@@ -115,18 +113,23 @@ public class ParkingLot extends BaseTimeEntity {
         .statusType(ParkingStatusType.from(row.getParkingStatusYn()))
         .build();
 
-    // 초기 상태 생성 (TPKCT, NOW_PRK_VHCL_CNT, NOW_PRK_VHCL_UPDT_TM 기반)
-    lot.addParkingStatus(ParkingStatus.builder()
-        .totalCapacity(totalCapacity)
-        .currentCount(currentCount)
-        .availableCount(availableCount)
-        .updatedAt(parseDateTime(row.getCurrentParkingUpdateTime()))
-        .build());
+    // 서울시 데이터인 경우에만 실시간 상태 초기 생성
+    if (province == Province.SEOUL) {
+      int currentCount = Math.max(0, safeInt(row.getCurrentParkingCount()));
+      int availableCount = Math.max(0, totalCapacity - currentCount);
+
+      lot.addParkingStatus(ParkingStatus.builder()
+          .totalCapacity(totalCapacity)
+          .currentCount(currentCount)
+          .availableCount(availableCount)
+          .updatedAt(parseDateTime(row.getCurrentParkingUpdateTime()))
+          .build());
+    }
 
     return lot;
   }
 
-  public void update(ParkingLotData row) {
+  public void update(ParkingLotData row, Province province) {
     this.parkingName = row.getParkingName();
     this.address = row.getAddress();
     this.parkingType = row.getParkingType();
@@ -149,8 +152,8 @@ public class ParkingLot extends BaseTimeEntity {
     this.dayMaxFee = safeInt(row.getDayMaxCharge());
     this.statusType = ParkingStatusType.from(row.getParkingStatusYn());
 
-    // 실시간 상태 업데이트 (TPKCT, NOW_PRK_VHCL_CNT, NOW_PRK_VHCL_UPDT_TM)
-    if (this.parkingStatus != null) {
+    // 서울시 데이터인 경우에만 실시간 상태 업데이트
+    if (province == Province.SEOUL && this.parkingStatus != null) {
       this.parkingStatus.update(
           this.totalCapacity,
           safeInt(row.getCurrentParkingCount()),

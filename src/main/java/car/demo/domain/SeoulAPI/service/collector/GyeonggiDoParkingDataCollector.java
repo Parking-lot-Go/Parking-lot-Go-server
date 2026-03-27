@@ -1,5 +1,8 @@
 package car.demo.domain.SeoulAPI.service.collector;
 
+import car.demo.domain.SeoulAPI.dto.GyeonggiDoParkingResponse;
+import car.demo.domain.SeoulAPI.dto.ParkingLotData;
+import car.demo.domain.SeoulAPI.event.ParkingDataCollectedEvent;
 import car.demo.domain.SeoulAPI.service.ParkingDataCollector;
 import car.demo.global.constants.GyeonggiDoDistrict;
 import car.demo.global.constants.Province;
@@ -7,10 +10,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Slf4j
 @Component
@@ -19,13 +25,14 @@ public class GyeonggiDoParkingDataCollector implements ParkingDataCollector {
 
     @Qualifier("GyeonggiDo")
     private final WebClient gyeonggiClient;
+    private final ApplicationEventPublisher eventPublisher;
+
     private static final String API_URI = "/ParkingPlace";
     @Value("${gyeonggi.api-key}")
     private String apiKey;
 
     @Override
     public void collect() {
-        // TODO: 경기도 공공데이터 API 연동 및 ParkingLotData 매핑 구현
         Flux.fromArray(GyeonggiDoDistrict.values())
                 .flatMap(district ->
                         gyeonggiClient.get().uri(uriBuilder ->
@@ -33,19 +40,28 @@ public class GyeonggiDoParkingDataCollector implements ParkingDataCollector {
                                 .queryParam("key", apiKey)
                             .queryParam("Type", "json")
                             .queryParam("pIndex", 1)
-                            .queryParam("pSize",1000).build())
+                            .queryParam("pSize",1000)
+                            .queryParam("SIGUN_NM", district.getKoreanName())
+                            .build())
                             .retrieve()
-                            .bodyToMono(String.class)
-                            .doOnSuccess(r -> log.info("Response received for district: {}", r))
+                            .bodyToMono(GyeonggiDoParkingResponse.class)
+                            .doOnSuccess(response -> {
+                                if (response != null && response.getParkingPlace() != null && response.getParkingPlace().size() > 1) {
+                                    List<ParkingLotData> rows = response.getParkingPlace().get(1).getRow()
+                                        .stream().map(r -> (ParkingLotData) r).toList();
+                                    eventPublisher.publishEvent(new ParkingDataCollectedEvent(
+                                        Province.GYEONGGI,
+                                        district.getKoreanName(),
+                                        rows
+                                    ));
+                                }
+                            })
                             .onErrorResume(error ->{
-                                log.error("Error collecting data for district: {}", district, error);
+                                log.error("[GyeonggiCollector] {} 수신 실패: {}", district.getKoreanName(), error.getMessage());
                                 return Mono.empty();
                             }),2)
             .collectList()
             .block();
-
-
-        log.info("[GyeonggiCollector] 수집 로직은 추후 구현 예정입니다.");
     }
 
     @Override

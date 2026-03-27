@@ -8,9 +8,11 @@ import car.demo.global.constants.Province;
 import car.demo.global.constants.SeoulDistrict;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -41,6 +43,8 @@ public class SeoulParkingDataCollector implements ParkingDataCollector {
     }
 
     @Override
+    @Scheduled(cron = "0 * * * * *")
+    @SchedulerLock(name = "ParkingService_fetchParkingData", lockAtMostFor = "55s", lockAtLeastFor = "50s")
     public void collect() {
         Flux.fromArray(SeoulDistrict.values())
             .flatMap(district -> seoulApiClient.get()
@@ -52,6 +56,7 @@ public class SeoulParkingDataCollector implements ParkingDataCollector {
                         List<ParkingLotData> rows = response.getGetParkingInfo().getRow()
                             .stream().map(r -> (ParkingLotData) r).toList();
                         eventPublisher.publishEvent(new ParkingDataCollectedEvent(
+                            Province.SEOUL,
                             district.getKoreanName(),
                             rows
                         ));

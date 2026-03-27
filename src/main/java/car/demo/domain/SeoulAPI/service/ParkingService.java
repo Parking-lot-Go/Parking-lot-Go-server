@@ -3,20 +3,12 @@ package car.demo.domain.SeoulAPI.service;
 import car.demo.domain.SeoulAPI.dto.CursorResponseDto;
 import car.demo.domain.SeoulAPI.dto.ParkingLotResponseDto;
 import car.demo.domain.SeoulAPI.dto.ParkingReqData;
-import car.demo.domain.SeoulAPI.dto.SeoulParkingResponse;
-import car.demo.domain.SeoulAPI.event.ParkingDataCollectedEvent;
 import car.demo.domain.SeoulAPI.repository.ParkingLotRepository;
-import car.demo.global.constants.SeoulDistrict;
 import car.demo.domain.SeoulAPI.entity.ParkingStatusType;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,22 +41,6 @@ public class ParkingService {
     }
 
     return CursorResponseDto.of(content, nextCursor, hasNext);
-  }
-
-
-  @Scheduled(cron = "0 * * * * *")
-  @SchedulerLock(name = "ParkingService_fetchParkingData", lockAtMostFor = "55s", lockAtLeastFor = "50s")
-  public void fetchParkingData() {
-    // 자동 수집 대상으로 등록된 수집기만 실행
-    collectors.stream()
-        .filter(ParkingDataCollector::isAutoCollectible)
-        .forEach(collector -> {
-          try {
-            collector.collect();
-          } catch (Exception e) {
-            log.error("[Scheduler] 수집기 실행 실패: {}", collector.getClass().getSimpleName(), e);
-          }
-        });
   }
 
   public boolean customFetchParkingData(ParkingReqData body) {
