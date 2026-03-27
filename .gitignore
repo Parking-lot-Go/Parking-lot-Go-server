@@ -33,7 +33,5 @@ out/
 /nbdist/
 /.nb-gradle/
 
-src/main/resources/application.yml
-
 ### VS Code ###
 .vscode/
