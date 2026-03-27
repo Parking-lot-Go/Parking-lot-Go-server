@@ -16,8 +16,9 @@ public enum ParkingStatusType {
   }
 
   public static ParkingStatusType from(String code) {
+    if (code == null) return NOT_LINKED;
     return Arrays.stream(values())
-        .filter(type -> type.code.equals(code))
+        .filter(type -> type.code.equals(code) || type.name().equalsIgnoreCase(code))
         .findFirst()
         .orElse(NOT_LINKED);
   }

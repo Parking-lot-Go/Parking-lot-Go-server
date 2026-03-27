@@ -26,7 +26,7 @@ public interface ParkingLotRepository extends JpaRepository<ParkingLot, Long> {
       @Param("parkingName") String parkingName,
       @Param("address") String address,
       @Param("district") String district,
-      @Param("type") String type,
+      @Param("type") car.demo.domain.SeoulAPI.entity.ParkingStatusType type,
       Pageable pageable);
 
   @Query("SELECT p FROM ParkingLot p LEFT JOIN FETCH p.parkingStatus " +

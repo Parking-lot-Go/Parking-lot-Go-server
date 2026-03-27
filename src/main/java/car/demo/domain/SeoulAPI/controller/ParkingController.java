@@ -2,6 +2,7 @@ package car.demo.domain.SeoulAPI.controller;
 
 import car.demo.domain.SeoulAPI.dto.CursorResponseDto;
 import car.demo.domain.SeoulAPI.dto.ParkingLotResponseDto;
+import car.demo.domain.SeoulAPI.entity.ParkingStatusType;
 import car.demo.domain.SeoulAPI.service.ParkingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ public class ParkingController {
       @RequestParam(name = "name", required = false) String name,
       @RequestParam(name = "address", required = false) String address,
       @RequestParam(name = "district", required = false) String district,
-      @RequestParam(name = "type" ,required = false, defaultValue = "REALTIME")String type) {
+      @RequestParam(name = "type" ,required = false, defaultValue = "REALTIME") ParkingStatusType type) {
     return ResponseEntity.ok(parkingService.getParkingLots(cursor, size, name, address, district,type));
   }
 

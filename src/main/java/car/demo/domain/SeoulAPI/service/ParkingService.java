@@ -6,6 +6,7 @@ import car.demo.domain.SeoulAPI.dto.SeoulParkingResponse;
 import car.demo.domain.SeoulAPI.event.ParkingDataCollectedEvent;
 import car.demo.domain.SeoulAPI.repository.ParkingLotRepository;
 import car.demo.global.constants.SeoulDistrict;
+import car.demo.domain.SeoulAPI.entity.ParkingStatusType;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +38,8 @@ public class ParkingService {
 
 
   @Transactional(readOnly = true)
-  public CursorResponseDto<ParkingLotResponseDto> getParkingLots(Long cursor, Integer size, String parkingName, String address,String district,String type) {
-    int fetchSize = (size == null) ? 10 : size;
+  public CursorResponseDto<ParkingLotResponseDto> getParkingLots(Long cursor, Integer size, String parkingName, String address,String district,ParkingStatusType type) {
+    int fetchSize = (size == null) ? 1000 : size;
 
     // hasNext 확인을 위해 1개 더 조회
     List<ParkingLotResponseDto> results = parkingLotRepository.findByCursor(
