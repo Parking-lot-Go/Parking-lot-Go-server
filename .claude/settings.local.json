@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/side-project/car-app-server -type f -name *.sql)"
+    ]
+  }
+}

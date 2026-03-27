@@ -1,0 +1,49 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: car-app-server
+
+  datasource:
+    url: jdbc:mysql://10.50.0.1:3306/car_park?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&autoReconnect=true
+    username: client
+    password: admin1234!@
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 30000
+      max-lifetime: 580000
+      connection-timeout: 5000
+      keepalive-time: 30000
+      validation-timeout: 3000
+      connection-test-query: SELECT 1
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  data:
+    redis:
+      host: 10.50.0.1
+      port: 30380
+      timeout: 5000
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+          time-between-eviction-runs: 30s
+
+shedlock:
+  lock-at-most-for: 55s
+  lock-at-least-for: 50s
+
+seoul:
+  api-key: 49704b416b6b657539366341526c52
