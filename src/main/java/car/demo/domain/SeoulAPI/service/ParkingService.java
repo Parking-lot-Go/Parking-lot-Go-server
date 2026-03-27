@@ -67,8 +67,29 @@ public class ParkingService {
         });
   }
 
-  public void customFetchParkingData(ParkingReqData body) {
-    // 간단히 전체 수집을 실행. (필터링 수집은 Collector 확장으로 추후 지원 가능)
-    fetchParkingData();
+  public boolean customFetchParkingData(ParkingReqData body) {
+    if (body == null || body.province() == null) {
+      log.warn("[CustomFetch] 요청된 지역(Province) 정보가 없습니다.");
+      return false;
+    }
+
+    boolean found = false;
+    for (ParkingDataCollector collector : collectors) {
+      if (collector.getProvince() == body.province()) {
+        found = true;
+        try {
+          log.info("[CustomFetch] {} 지역 데이터 수집 시작: {}", body.province(), collector.getClass().getSimpleName());
+          collector.collect();
+        } catch (Exception e) {
+          log.error("[CustomFetch] {} 수집 중 오류 발생: {}", collector.getClass().getSimpleName(), e.getMessage(), e);
+          // 필요 시 예외를 다시 던져서 컨트롤러에 500 응답을 줄 수도 있음
+        }
+      }
+    }
+
+    if (!found) {
+      log.warn("[CustomFetch] {} 지역을 담당하는 수집기가 등록되어 있지 않습니다.", body.province());
+    }
+    return found;
   }
 }

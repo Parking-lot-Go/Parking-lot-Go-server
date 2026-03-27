@@ -34,8 +34,12 @@ public class ParkingController {
 
   @PostMapping
   public ResponseEntity<Void> fetchParkingData(@RequestBody ParkingReqData body) {
-    parkingService.fetchParkingData();
-    return ResponseEntity.ok().build();
+    boolean success = parkingService.customFetchParkingData(body);
+    if (success) {
+      return ResponseEntity.ok().build();
+    } else {
+      return ResponseEntity.notFound().build();
+    }
   }
 
 }

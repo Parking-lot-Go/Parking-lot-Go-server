@@ -1,5 +1,7 @@
 package car.demo.domain.SeoulAPI.dto;
 
-public record ParkingReqData(String district) {
+import car.demo.global.constants.Province;
+
+public record ParkingReqData(Province province) {
 
 }

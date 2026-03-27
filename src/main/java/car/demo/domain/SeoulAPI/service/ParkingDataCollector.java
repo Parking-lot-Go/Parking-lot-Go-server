@@ -1,5 +1,7 @@
 package car.demo.domain.SeoulAPI.service;
 
+import car.demo.global.constants.Province;
+
 public interface ParkingDataCollector {
     void collect();
 
@@ -10,4 +12,8 @@ public interface ParkingDataCollector {
     default boolean isAutoCollectible() {
         return false;
     }
+
+    Province getProvince();
+
+
 }

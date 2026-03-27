@@ -1,12 +1,13 @@
-package car.demo.domain.SeoulAPI.service;
+package car.demo.domain.SeoulAPI.service.collector;
 
 import car.demo.domain.SeoulAPI.dto.ParkingLotData;
 import car.demo.domain.SeoulAPI.dto.SeoulParkingResponse;
 import car.demo.domain.SeoulAPI.event.ParkingDataCollectedEvent;
+import car.demo.domain.SeoulAPI.service.ParkingDataCollector;
+import car.demo.global.constants.Province;
 import car.demo.global.constants.SeoulDistrict;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -32,6 +33,11 @@ public class SeoulParkingDataCollector implements ParkingDataCollector {
     @Override
     public boolean isAutoCollectible() {
         return true;
+    }
+
+    @Override
+    public Province getProvince() {
+        return Province.SEOUL;
     }
 
     @Override
