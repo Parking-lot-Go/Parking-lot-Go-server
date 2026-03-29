@@ -94,4 +94,10 @@ public class ParkingService {
     }
     return found;
   }
+
+  public ParkingLotResponseDto getParkingLot(Long id) {
+    return parkingLotRepository.findById(id)
+        .map(ParkingLotResponseDto::fromEntity)
+        .orElse(null);
+  }
 }

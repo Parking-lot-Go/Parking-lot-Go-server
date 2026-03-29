@@ -8,6 +8,7 @@ import car.demo.domain.SeoulAPI.service.ParkingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +40,15 @@ public class ParkingController {
     return ResponseEntity.ok(parkingService.getParkingLots(cursor, size, name, address, district, swLat, swLng, neLat, neLng, lat, lng, radius, type));
   }
 
+  @GetMapping("/{id}")
+  public ResponseEntity<ParkingLotResponseDto> getParkingLot(@PathVariable Long id) {
+    ParkingLotResponseDto parkingLot = parkingService.getParkingLot(id);
+    if (parkingLot == null) {
+      return ResponseEntity.notFound().build();
+    }
+    return ResponseEntity.ok(parkingLot);
+
+  }
   @PostMapping
   public ResponseEntity<Void> fetchParkingData(@RequestBody ParkingReqData body) {
     boolean success = parkingService.customFetchParkingData(body);
