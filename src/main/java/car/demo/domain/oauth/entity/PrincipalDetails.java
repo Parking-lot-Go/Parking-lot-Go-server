@@ -1,5 +1,6 @@
 package car.demo.domain.oauth.entity;
 
+import car.demo.domain.auth.service.JwtPrincipal;
 import car.demo.domain.user.dto.UserDto;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -8,12 +9,27 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
-public class PrincipalDetails implements UserDetails {
+public class PrincipalDetails implements UserDetails, JwtPrincipal {
 
     private final UserDto userDto;
 
     public PrincipalDetails(UserDto userDto) {
         this.userDto = userDto;
+    }
+
+    @Override
+    public Long getId() {
+        return userDto.getUserId();
+    }
+
+    @Override
+    public String getRoleAsString() {
+        return userDto.getRole() != null ? userDto.getRole().name() : null;
+    }
+
+    @Override
+    public String getNickname() {
+        return userDto.getNickname();
     }
 
     @Override
