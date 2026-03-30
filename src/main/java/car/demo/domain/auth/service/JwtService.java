@@ -86,6 +86,12 @@ public class JwtService {
     }
 
     @Transactional
+    public void logout(Long userId) {
+        tokenRepository.findAllByUserId(userId)
+                .forEach(tokenRepository::delete);
+    }
+
+    @Transactional
     public String reissueTokensFromRefresh(String refreshToken) {
         Claims claims = validateToken(refreshToken);
         if (!"refresh".equals(claims.get("type"))) {

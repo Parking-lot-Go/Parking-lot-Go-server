@@ -3,12 +3,14 @@ package car.demo.domain.auth.controller;
 import car.demo.domain.auth.dto.AuthResponseDto;
 import car.demo.domain.auth.dto.Oauth2RequestDTO;
 import car.demo.domain.auth.service.oauth2.Oauth2ServiceFactory;
+import car.demo.domain.auth.service.JwtPrincipal;
 import car.demo.domain.oauth.entity.PrincipalDetails;
 import car.demo.domain.user.dto.UserDto;
 import car.demo.global.dto.CommonResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -38,5 +40,13 @@ public class AuthController {
         SecurityContextHolder.setContext(context);
 
         return CommonResponse.ok(new AuthResponseDto.LoginResponse(userDto, userDto.toJwtTokenDto()));
+    }
+
+    @PostMapping("/logout")
+    public CommonResponse<Void> logout(@AuthenticationPrincipal PrincipalDetails principal) {
+        if (principal != null && principal.getUserDto() != null) {
+            jwtService.logout(principal.getUserDto().getUserId());
+        }
+        return CommonResponse.ok(null);
     }
 }
