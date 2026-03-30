@@ -56,4 +56,12 @@ public class UserService {
                 .map(UserDto::toDto)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
+
+    @Transactional
+    public UserDto updateNaviType(Long userId, car.demo.domain.user.entity.NaviType naviType) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        user.setNaviType(naviType);
+        return UserDto.toDto(user);
+    }
 }

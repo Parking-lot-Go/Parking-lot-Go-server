@@ -33,6 +33,11 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private String socialId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private NaviType naviType = NaviType.KAKAO;
+
     private boolean isActive;
 
     public boolean isActive() {

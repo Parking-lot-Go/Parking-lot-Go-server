@@ -2,6 +2,7 @@ package car.demo.domain.user.dto;
 
 import car.demo.domain.auth.dto.JwtTokenDto;
 import car.demo.domain.user.entity.LoginType;
+import car.demo.domain.user.entity.NaviType;
 import car.demo.domain.user.entity.Role;
 import car.demo.domain.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -24,6 +25,7 @@ public class UserDto {
     private LoginType loginType;
     private Role role;
     private Boolean isRegister;
+    private NaviType naviType;
 
     @Getter(onMethod_ = {@JsonIgnore, @Schema(hidden = true)})
     private boolean isLogin;
@@ -47,6 +49,7 @@ public class UserDto {
                 .loginType(user.getLoginType())
                 .profileImageUrl(user.getProfileImageUrl())
                 .role(user.getRole())
+                .naviType(user.getNaviType())
                 .isRegister(isRegister)
                 .isActive(user.isActive()).build();
     }
@@ -67,6 +70,7 @@ public class UserDto {
                 .loginType(user.getLoginType())
                 .socialId(user.getSocialId())
                 .role(user.getRole())
+                .naviType(user.getNaviType())
                 .isActive(user.isActive()).build();
     }
 
