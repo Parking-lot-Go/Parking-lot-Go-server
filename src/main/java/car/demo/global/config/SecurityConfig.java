@@ -22,6 +22,25 @@ public class SecurityConfig {
   private final JwtAuthenticationFilter jwtAuthenticationFilter;
   private final JwtExceptionFilter jwtExceptionFilter;
 
+//  @Bean
+//  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+//
+//    http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//        .cors(cors -> cors.configurationSource(corsConfigurationSource))
+//        .formLogin(AbstractHttpConfigurer::disable)
+//        .csrf(AbstractHttpConfigurer::disable)
+//        .authorizeHttpRequests(auth -> auth
+////                .requestMatchers("/api/v1/auth/**").permitAll()
+//                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+//                .anyRequest().authenticated()
+//        )
+//        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+//        .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);
+//
+//    return http.build();
+//
+//  }
+
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -30,14 +49,11 @@ public class SecurityConfig {
         .formLogin(AbstractHttpConfigurer::disable)
         .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                .anyRequest().authenticated()
+            .anyRequest().permitAll()
         )
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);
 
     return http.build();
-
   }
 }
