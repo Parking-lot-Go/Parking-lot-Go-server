@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/support-tickets")
+@RequestMapping("/api/v1/admin/support-tickets")
 public class AdminSupportTicketController {
 
     private final SupportTicketService supportTicketService;
