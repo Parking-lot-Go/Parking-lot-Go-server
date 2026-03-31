@@ -92,18 +92,16 @@ public class JwtService {
     }
 
     @Transactional
-    public String reissueTokensFromRefresh(String refreshToken) {
+    public JwtTokenDto reissueTokensFromRefresh(String refreshToken) {
         Claims claims = validateToken(refreshToken);
         if (!"refresh".equals(claims.get("type"))) {
-            throw new JwtException(JWT_TOKEN_EXPIRED);
-        }
-        boolean tokenExpired = isTokenExpired(refreshToken);
-        if (!tokenExpired) {
-            return generateAccessToken(UserDto.reissue(claims));
+            throw new JwtException(JWT_TOKEN_INVALID);
         }
 
-        tokenRepository.deleteByToken(refreshToken);
-        throw new JwtException(JWT_TOKEN_INVALID);
+        UserDto userDto = UserDto.reissue(claims);
+        String newAccessToken = generateAccessToken(userDto);
+        
+        return JwtTokenDto.of(newAccessToken, refreshToken);
     }
 
     public String generateAccessToken(UserDto userDto) {

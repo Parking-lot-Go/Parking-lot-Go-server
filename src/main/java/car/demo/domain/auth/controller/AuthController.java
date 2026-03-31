@@ -1,6 +1,7 @@
 package car.demo.domain.auth.controller;
 
 import car.demo.domain.auth.dto.AuthResponseDto;
+import car.demo.domain.auth.dto.JwtTokenDto;
 import car.demo.domain.auth.dto.Oauth2RequestDTO;
 import car.demo.domain.auth.service.oauth2.Oauth2ServiceFactory;
 import car.demo.domain.auth.service.JwtPrincipal;
@@ -48,5 +49,11 @@ public class AuthController {
             jwtService.logout(principal.getUserDto().getUserId());
         }
         return CommonResponse.ok(null);
+    }
+
+    @PostMapping("/reissue")
+    public CommonResponse<JwtTokenDto> reissue(@RequestBody @Valid Oauth2RequestDTO.ReissueRequest request) {
+        JwtTokenDto tokenDto = jwtService.reissueTokensFromRefresh(request.refreshToken());
+        return CommonResponse.ok(tokenDto);
     }
 }
