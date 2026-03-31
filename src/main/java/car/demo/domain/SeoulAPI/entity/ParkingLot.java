@@ -220,7 +220,7 @@ public class ParkingLot extends BaseTimeEntity {
       return 0;
     }
     try {
-      return Integer.parseInt(amount);
+      return Integer.parseInt(amount.replaceAll("[^0-9]", ""));
     } catch (NumberFormatException e) {
       return 0;
     }
@@ -228,5 +228,51 @@ public class ParkingLot extends BaseTimeEntity {
 
   public boolean isRealtime() {
     return this.statusType == ParkingStatusType.REALTIME;
+  }
+
+  public void updateFromCsv(String[] data) {
+    this.parkingCode = getValue(data, 0);
+    this.parkingName = getValue(data, 1);
+    this.parkingType = getValue(data, 2);
+    this.parkingTypeName = getValue(data, 3);
+    String roadAddr = getValue(data, 4);
+    String jibunAddr = getValue(data, 5);
+    this.address = roadAddr.isEmpty() ? jibunAddr : roadAddr;
+
+    if (!this.address.isEmpty()) {
+      String[] parts = this.address.split("\\s+");
+      if (parts.length >= 3) {
+        this.district = parts[2];
+      } else if (parts.length >= 2) {
+        this.district = parts[1];
+      }
+    }
+
+    this.totalCapacity = parseAmount(getValue(data, 6));
+    this.weekdayStart = getValue(data, 10);
+    this.weekdayEnd = getValue(data, 11);
+    this.weekendStart = getValue(data, 12);
+    this.weekendEnd = getValue(data, 13);
+    this.holidayStart = getValue(data, 14);
+    this.holidayEnd = getValue(data, 15);
+    this.feeType = getValue(data, 16);
+    this.basicTime = parseAmount(getValue(data, 17));
+    this.basicFee = parseAmount(getValue(data, 18));
+    this.additionalTime = parseAmount(getValue(data, 19));
+    this.additionalFee = parseAmount(getValue(data, 20));
+    this.dayMaxFee = parseAmount(getValue(data, 22));
+    this.monthlyFee = parseAmount(getValue(data, 23));
+    this.phone = getValue(data, 27);
+    double latitude = safeDouble(getValue(data, 28));
+    double longitude = safeDouble(getValue(data, 29));
+    this.lat = latitude > 0 ? latitude : null;
+    this.lng = longitude > 0 ? longitude : null;
+    if (this.statusType == null) {
+      this.statusType = ParkingStatusType.NOT_LINKED;
+    }
+  }
+
+  private String getValue(String[] data, int index) {
+    return (data.length > index) ? data[index].trim() : "";
   }
 }

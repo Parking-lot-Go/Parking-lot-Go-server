@@ -4,14 +4,23 @@ import car.demo.domain.SeoulAPI.dto.CursorResponseDto;
 import car.demo.domain.SeoulAPI.dto.ParkingLotResponseDto;
 import car.demo.domain.SeoulAPI.dto.ParkingReqData;
 import car.demo.domain.SeoulAPI.repository.ParkingLotRepository;
+import car.demo.domain.SeoulAPI.entity.ParkingLot;
 import car.demo.domain.SeoulAPI.entity.ParkingStatusType;
+import car.demo.global.exception.ErrorCode;
+import car.demo.global.exception.custom.BusinessException;
 import car.demo.global.utils.GeoUtil;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -19,8 +28,46 @@ import org.springframework.transaction.annotation.Transactional;
 public class ParkingService {
 
   private final ParkingLotRepository parkingLotRepository;
-  private final java.util.List<ParkingDataCollector> collectors;
+  private final List<ParkingDataCollector> collectors;
 
+  @Transactional
+  public void saveParkingLotsFromCsv(MultipartFile file) {
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+      String line;
+      boolean isFirstLine = true;
+      List<ParkingLot> parkingLots = new ArrayList<>();
+
+      while ((line = reader.readLine()) != null) {
+        if (isFirstLine) {
+          isFirstLine = false;
+          continue;
+        }
+        if (line.trim().isEmpty()) continue;
+
+        String[] data = line.split("\t");
+        if (data.length < 2) {
+          data = line.split(",");
+          if (data.length < 2) continue;
+        }
+
+        String parkingCode = data[0].trim();
+        if (parkingCode.isEmpty()) continue;
+
+        ParkingLot lot = parkingLotRepository.findByParkingCode(parkingCode)
+            .orElseGet(() -> ParkingLot.builder().build());
+
+        lot.updateFromCsv(data);
+        parkingLots.add(lot);
+      }
+      parkingLotRepository.saveAll(parkingLots);
+    } catch (IOException e) {
+      log.error("CSV 파싱 중 오류 발생: {}", e.getMessage(), e);
+      throw new BusinessException(ErrorCode.CSV_PARSE_ERROR);
+    } catch (Exception e) {
+      log.error("데이터 업로드 중 오류 발생: {}", e.getMessage(), e);
+      throw new BusinessException(ErrorCode.DATA_UPLOAD_ERROR);
+    }
+  }
 
   @Transactional(readOnly = true)
   public CursorResponseDto<ParkingLotResponseDto> getParkingLots(Long cursor, Integer size, String parkingName,
