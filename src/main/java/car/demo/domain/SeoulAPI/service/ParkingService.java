@@ -12,6 +12,7 @@ import car.demo.global.utils.GeoUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +35,8 @@ public class ParkingService {
 
   @Transactional
   public void saveParkingLotsFromCsv(MultipartFile file) {
-    try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
+    // 한국어 CSV 파일은 보통 MS949(EUC-KR의 확장형) 또는 UTF-8인 경우가 많으므로 MS949로 시도해 봅니다.
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream(), Charset.forName("MS949")))) {
       String line;
       boolean isFirstLine = true;
       List<ParkingLot> parkingLots = new ArrayList<>();
