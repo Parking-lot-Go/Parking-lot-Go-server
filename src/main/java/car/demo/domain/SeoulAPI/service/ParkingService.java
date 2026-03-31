@@ -14,7 +14,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -36,6 +38,7 @@ public class ParkingService {
       String line;
       boolean isFirstLine = true;
       List<ParkingLot> parkingLots = new ArrayList<>();
+      Map<String, ParkingLot> localCache = new HashMap<>();
 
       while ((line = reader.readLine()) != null) {
         if (isFirstLine) {
@@ -53,11 +56,15 @@ public class ParkingService {
         String parkingCode = data[0].trim();
         if (parkingCode.isEmpty()) continue;
 
-        ParkingLot lot = parkingLotRepository.findByParkingCode(parkingCode)
-            .orElseGet(() -> ParkingLot.builder().build());
+        ParkingLot lot = localCache.get(parkingCode);
+        if (lot == null) {
+          lot = parkingLotRepository.findByParkingCode(parkingCode)
+              .orElseGet(() -> ParkingLot.builder().parkingCode(parkingCode).build());
+          localCache.put(parkingCode, lot);
+          parkingLots.add(lot);
+        }
 
         lot.updateFromCsv(data);
-        parkingLots.add(lot);
       }
       parkingLotRepository.saveAll(parkingLots);
     } catch (IOException e) {
